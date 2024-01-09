@@ -17,6 +17,8 @@ INFLUXDB_TOKEN = os.getenv('INFLUXDB_TOKEN')
 INFLUXDB_ORG = os.getenv('INFLUXDB_ORG')
 INFLUXDB_URL = os.getenv('INFLUXDB_URL')
 INFLUXDB_BUCKET = os.getenv('INFLUXDB_BUCKET')
+EXECUTION_TIMER = 12 if os.getenv('EXECUTION_TIMER') == '' else os.getenv('EXECUTION_TIMER')
+print()
 
 def getTransactions(savePath: str = "/raw-statements") -> dict:
 
@@ -179,6 +181,6 @@ if __name__ == '__main__':
                
                print(e.with_traceback())
                break
-          sleepTime = 12
-          print(f"Writing again in {sleepTime} hours")
-          sleep (sleepTime*3600)
+
+          print(f"Writing again in {EXECUTION_TIMER} hours")
+          sleep (EXECUTION_TIMER*3600)
