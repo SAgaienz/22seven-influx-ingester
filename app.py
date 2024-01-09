@@ -7,9 +7,9 @@ from datetime import datetime
 from pandas import read_csv, to_datetime
 import os
 from influxdb_client import InfluxDBClient
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from numpy import zeros
-
-
 
 USER = os.getenv('TTSEVEN_USER')
 PASSWORD = os.getenv('TTSEVEN_PASS')
@@ -17,8 +17,7 @@ INFLUXDB_TOKEN = os.getenv('INFLUXDB_TOKEN')
 INFLUXDB_ORG = os.getenv('INFLUXDB_ORG')
 INFLUXDB_URL = os.getenv('INFLUXDB_URL')
 INFLUXDB_BUCKET = os.getenv('INFLUXDB_BUCKET')
-EXECUTION_TIMER = 12 if os.getenv('EXECUTION_TIMER') == '' else os.getenv('EXECUTION_TIMER')
-print()
+EXECUTION_TIMER = 12 if os.getenv('EXECUTION_TIMER') == '' else float(os.getenv('EXECUTION_TIMER'))
 
 def getTransactions(savePath: str = "/raw-statements") -> dict:
 
@@ -55,13 +54,18 @@ def getTransactions(savePath: str = "/raw-statements") -> dict:
           url = "https://app.22seven.com/transactions?tab=all"
           print(f"Navigating to '{url}'")
           driver.get(url)
-          sleep(5)
+          # sleep(5)
 
           # download transactions
           print(f"Downloading Transactions")
-          downloadCSV = driver.find_element(By.XPATH, "/html/body/div/div/div[2]/div[2]/header/div/div[3]/div/button")
+          downloadCSV = WebDriverWait(driver, 10).until(
+               EC.element_to_be_clickable((By.XPATH, "/html/body/div/div/div[2]/div[2]/header/div/div[3]/div/button"))
+          )
+          # ownloadCSV = .find_element((By.XPATH, "/html/body/div/div/div[2]/div[2]/header/div/div[3]/div/button"))
           downloadCSV.click()
           sleep(5)
+          # driver.quit()
+          # exit()
 
           # get current account balances... 
           url = "https://app.22seven.com/accounts"
@@ -69,7 +73,10 @@ def getTransactions(savePath: str = "/raw-statements") -> dict:
           driver.get(url)
           sleep(10)
 
-          accEl = driver.find_element(By.XPATH, '/html/body/div/div/div[2]/div[2]/div/div/div[3]/div')
+          accEl =  WebDriverWait(driver, 10).until(
+               EC.element_to_be_clickable((By.XPATH, '/html/body/div/div/div[2]/div[2]/div/div/div[3]/div'))
+          )
+
           accounts = accEl.find_elements(By.XPATH, '*')
           for i, account in enumerate(accounts):
                accName = driver.find_element(By.XPATH, f'/html/body/div/div/div[2]/div[2]/div/div/div[3]/div/div[{i+1}]/div/div[2]/div[1]').get_attribute("textContent")
@@ -94,6 +101,7 @@ def getTransactions(savePath: str = "/raw-statements") -> dict:
      
      return retval
 
+
 def processTransactions(downloadFile: str, accDict: dict ):
      # print(accDic)
 
@@ -112,10 +120,10 @@ def processTransactions(downloadFile: str, accDict: dict ):
           tags = {}
           fields = {}
 
-          accDic[row["Account"]] -= row['value']
+          accDict[row["Account"]] -= row['value']
 
           tags["Account"] = row["Account"]
-          fields["value"] = accDic[row["Account"]]
+          fields["value"] = accDict[row["Account"]]
           fields["Category"] = row["Category"]
           fields["Spending Group"] = row["Spending Group"]
           fields["Pay Month"] = row["Pay Month"]
@@ -162,11 +170,11 @@ if __name__ == '__main__':
      print("started 22seven influx ingester!")
      print(f"InfluxDB url: {INFLUXDB_URL}")
      print(f"22Seven Username: {USER}")
-
+     
      while True: 
           savePath = "/home/bauglir/Development/finance/raw-statements"
           retval = getTransactions(savePath=savePath)
-          accDic = retval["balances"] 
+          accDict= retval["balances"] 
           success = retval["success"] 
           msg = retval["msg"]
 
@@ -175,7 +183,7 @@ if __name__ == '__main__':
                break
 
           try: 
-               processTransactions(savePath, accDic)
+               processTransactions(savePath, accDict)
 
           except Exception as e: 
                
