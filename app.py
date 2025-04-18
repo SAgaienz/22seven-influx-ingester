@@ -17,7 +17,7 @@ INFLUXDB_TOKEN = os.getenv('INFLUXDB_TOKEN')
 INFLUXDB_ORG = os.getenv('INFLUXDB_ORG')
 INFLUXDB_URL = os.getenv('INFLUXDB_URL')
 INFLUXDB_BUCKET = os.getenv('INFLUXDB_BUCKET')
-EXECUTION_TIMER = 12 if os.getenv('EXECUTION_TIMER') == '' else float(os.getenv('EXECUTION_TIMER'))
+EXECUTION_TIMER = 12 if (os.getenv('EXECUTION_TIMER') == '' or os.getenv('EXECUTION_TIMER') == None) else float(os.getenv('EXECUTION_TIMER'))
 
 def getTransactions(savePath: str = "/raw-statements") -> dict:
 

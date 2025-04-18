@@ -1,11 +1,10 @@
-version: "3"
 services:
   finance-influx-ingester:
     # image: k0rventen/apple-health-grafana-ingester
     build: .
     environment:
-      - TTSEVEN_USER=<22-seven-email@example.com>
-      - TTSEVEN_PASS=<22-seven-login-pass>
+      - TTSEVEN_USER=<22-seven@email.com>
+      - TTSEVEN_PASS=<22-seven-pass>
       - INFLUXDB_TOKEN=<22-seven-influx-token>
       - INFLUXDB_ORG=<influx-org>
       - INFLUXDB_URL=<influx-host.domain>

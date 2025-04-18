@@ -1,19 +1,24 @@
-FROM --platform=linux/amd64 python:3.9-buster
+FROM python:3.9-alpine
 
-RUN apt-get update && apt-get install -y gnupg2
-RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub |  apt-key add - 
-RUN sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+# update apk repo
+RUN echo "http://dl-4.alpinelinux.org/alpine/v3.10/main" >> /etc/apk/repositories && \
+    echo "http://dl-4.alpinelinux.org/alpine/v3.10/community" >> /etc/apk/repositories
 
-# Install Chrome
-RUN apt-get update
-RUN apt-get install -y google-chrome-stable
-
-ENV DISPLAY=:99
+# install chromedriver
+RUN apk update
+RUN apk add chromium chromium-chromedriver
+ENV CHROME_BIN=/usr/bin/chromium-browser \
+    CHROME_PATH=/usr/lib/chromium/
 
 COPY . /usr/local/bin/
 COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+# install python libraries
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# entrypoint
+ENV DISPLAY=:99
 
 RUN python download_chrome.py
 
